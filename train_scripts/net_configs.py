@@ -1,4 +1,6 @@
 from keras import optimizers
+from asimov_loss import asimovLoss
+
 config_dict = {}
 
 config_dict["example_config"] = {
@@ -107,6 +109,18 @@ config_dict["binary_config"] = {
 config_dict["binary_config_v2"] = {
         "layers":                   [200,100],
         "loss_function":            "binary_crossentropy",
+        "Dropout":                  0.3,
+        "L2_Norm":                  1e-5,
+        "batch_size":               4000,
+        "optimizer":                optimizers.Adadelta(),
+        "activation_function":      "selu",
+        "output_activation":        "Sigmoid",
+        "earlystopping_percentage": 0.05,
+        "earlystopping_epochs":     50,
+        }
+config_dict["binary_config_v3"] = {
+        "layers":                   [200,100],
+        "loss_function":            asimovLoss,
         "Dropout":                  0.3,
         "L2_Norm":                  1e-5,
         "batch_size":               4000,
