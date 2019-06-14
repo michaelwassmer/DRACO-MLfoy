@@ -118,7 +118,7 @@ config_dict["binary_config_v2"] = {
         "earlystopping_percentage": 0.05,
         "earlystopping_epochs":     50,
         }
-config_dict["binary_config_v3"] = {
+config_dict["binary_config_asimov"] = {
         "layers":                   [200,100],
         "loss_function":            asimovLoss,
         "Dropout":                  0.3,

@@ -80,6 +80,46 @@ variables["ge6j_ge3t"] = [
     "Evt_blr_ETH_transformed",
     ]
 
+variables["ge6j_ge3t_all"] = [
+    'Evt_CSV_Min_Tagged',
+    'BDT_common5_input_transverse_sphericity_jets',
+    'Evt_M_JetsAverage',
+    'Evt_CSV_Min',
+    'BDT_common5_input_max_dR_jj',
+    'Evt_M_MinDeltaRLeptonTaggedJet',
+    'Evt_JetPtOverJetE',
+    'Evt_M2_TaggedJetsAverage',
+    'N_Jets',
+    'Evt_blr_ETH',
+    'Evt_Dr_MinDeltaRTaggedJets',
+    'Evt_Dr_TaggedJetsAverage',
+    'BDT_common5_input_closest_tagged_dijet_mass',
+    'Weight_GEN_nom',
+    'Evt_HT',
+    'Weight_XS',
+    'BDT_common5_input_sphericity_tags',
+    'BDT_common5_input_HT_tag',
+    'BDT_common5_input_dev_from_avg_disc_btags',
+    'Evt_CSV_Average_Tagged',
+    'Evt_CSV_Average',
+    'Evt_Dr_MinDeltaRLeptonTaggedJet',
+    'N_BTagsT',
+    'N_BTagsM',
+    #'Evt_Odd',
+    'Evt_Deta_TaggedJetsAverage',
+    'Weight_CSV',
+    'Evt_blr_ETH_transformed',
+    'BDT_common5_input_sphericity_jets',
+    'Jet_Pt[2]',
+    'Jet_Pt[0]',
+    'Jet_Pt[1]',
+    'CSV[1]',
+    'Jet_CSV[0]',
+    'Jet_CSV[3]',
+    #'class_label',
+    'memDBp',
+    ]
+
 
 
 all_variables = list(set( [v for key in variables for v in variables[key] ] ))

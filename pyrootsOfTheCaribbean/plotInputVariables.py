@@ -74,11 +74,11 @@ if not os.path.isabs(options.outputDir):
     plot_dir = basedir+"/workdir/"+options.outputDir
     if not os.path.exists(plot_dir):
         os.makedirs(plot_dir)
-else: 
+else:
     plot_dir=options.outputDir
     if not os.path.exists(options.outputDir):
         os.makedirs(plot_dir)
-   
+
 
 # plotting options
 plotOptions = {
@@ -99,6 +99,43 @@ plotOptions = {
 
 # additional variables to plot
 additional_variables = [
+    #'Evt_CSV_Min_Tagged',
+    'BDT_common5_input_transverse_sphericity_jets',
+    #'Evt_M_JetsAverage',
+    'Evt_CSV_Min',
+    'BDT_common5_input_max_dR_jj',
+    #'Evt_M_MinDeltaRLeptonTaggedJet',
+    #'Evt_JetPtOverJetE',
+    #'Evt_M2_TaggedJetsAverage',
+    'N_Jets',
+    #'Evt_blr_ETH',
+    #'Evt_Dr_MinDeltaRTaggedJets',
+    #'Evt_Dr_TaggedJetsAverage',
+    #'BDT_common5_input_closest_tagged_dijet_mass',
+    'Weight_GEN_nom',
+    'Evt_HT',
+    'Weight_XS',
+    'BDT_common5_input_sphericity_tags',
+    #'BDT_common5_input_HT_tag',
+    #'BDT_common5_input_dev_from_avg_disc_btags',
+    #'Evt_CSV_Average_Tagged',
+    #'Evt_CSV_Average',
+    'Evt_Dr_MinDeltaRLeptonTaggedJet',
+    #'N_BTagsT',
+    'N_BTagsM',
+    ##'Evt_Odd',
+    #'Evt_Deta_TaggedJetsAverage',
+    'Weight_CSV',
+    #'Evt_blr_ETH_transformed',
+    #'BDT_common5_input_sphericity_jets',
+    'Jet_Pt[2]',
+    'Jet_Pt[0]',
+    'Jet_Pt[1]',
+    #'CSV[1]',
+    #'Jet_CSV[0]',
+    'Jet_CSV[3]',
+    ##'class_label',
+    #'memDBp',
     ]
 
 # variables that are not plotted
@@ -152,7 +189,7 @@ plotter.addSample(
 
 
 # add JT categories
-plotter.addCategory("ge4j_ge3t")
+plotter.addCategory("ge6j_ge3t")
 
 
 # perform plotting routine
