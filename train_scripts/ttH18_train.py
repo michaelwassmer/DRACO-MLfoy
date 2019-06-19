@@ -149,7 +149,7 @@ input_samples.addSample("ttcc"+naming, label = "ttcc", normalization_weight = no
 input_samples.addSample("ttlf"+naming, label = "ttlf", normalization_weight = nom_weight)
 input_samples.addSample("ttZ"+naming,  label = "ttZ",  normalization_weight = nom_weight)
 input_samples.addSample("ST"+naming,   label = "ST",   normalization_weight = nom_weight)
-input_samples.addSample("tH"+naming,   label = "tH",   normalization_weight = nom_weight)
+#input_samples.addSample("tH"+naming,   label = "tH",   normalization_weight = nom_weight)
 
 if options.binary:
     input_samples.addBinaryLabel(signal, options.binary_bkg_target)
@@ -190,11 +190,11 @@ dnn.save_model(sys.argv, filedir)
 # save and print variable ranking
 dnn.get_input_weights()
 
-# plotting 
+# plotting
 if options.plot:
     # plot the evaluation metrics
     dnn.plot_metrics(privateWork = options.privateWork)
- 
+
     if options.binary:
         # plot output node
         bin_range = [input_samples.bkg_target, 1.]
@@ -208,10 +208,9 @@ if options.plot:
 
         # plot the output nodes
         dnn.plot_outputNodes(log = options.log, signal_class = signal, privateWork = options.privateWork, printROC = options.printROC)
-        
+
         # plot event yields
         dnn.plot_eventYields(log = options.log, signal_class = signal, privateWork = options.privateWork)
 
         # plot closure test
         dnn.plot_closureTest(log = options.log, signal_class = signal, privateWork = options.privateWork)
-

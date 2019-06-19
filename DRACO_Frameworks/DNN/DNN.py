@@ -2,6 +2,7 @@ import os
 import sys
 import numpy as np
 import json
+import types # added
 
 # local imports
 filedir  = os.path.dirname(os.path.realpath(__file__))
@@ -66,7 +67,7 @@ class EarlyStopping(keras.callbacks.Callback):
         if current_val < self.best_validation:
             self.best_validation = current_val
             self.best_epoch = epoch
-    
+
         # check loss by percentage difference
         if self.value:
             if (current_val-current_train)/(current_train) > self.value and epoch > self.min_epochs:
@@ -82,11 +83,11 @@ class EarlyStopping(keras.callbacks.Callback):
                 if self.verbose > 0:
                     print("\nValidation loss has not decreased for {} epochs".format( epoch - self.best_epoch ))
                 self.model.stop_training = True
-        
+
 
 
 class DNN():
-    def __init__(self, 
+    def __init__(self,
             save_path,
             input_samples,
             event_category,
@@ -127,7 +128,7 @@ class DNN():
 
         # percentage of events saved for testing
         self.test_percentage = test_percentage
-        
+
         # number of train epochs
         self.train_epochs = train_epochs
 
@@ -155,8 +156,8 @@ class DNN():
         self.inputName = "inputLayer"
         self.outputName = "outputLayer"
 
-           
-        
+
+
     def _load_datasets(self, shuffle_seed, balanceSamples):
         ''' load data set '''
         return data_frame.DataFrame(
@@ -187,7 +188,7 @@ class DNN():
 
         for key in config:
             self.architecture[key] = config[key]
-        
+
     def load_trained_model(self, inputDirectory):
         ''' load an already trained model '''
         checkpoint_path = inputDirectory+"/checkpoints/trained_model.h5py"
@@ -270,7 +271,7 @@ class DNN():
                 kernel_regularizer  = keras.regularizers.l2(l2_regularization_beta),
                 name                = "DenseLayer_"+str(iLayer)
                 )(X)
-    
+
             if self.architecture["activation_function"] == "leakyrelu":
                 X = keras.layers.LeakyReLU(alpha=0.3)(X)
 
@@ -279,7 +280,7 @@ class DNN():
                 X = keras.layers.Dropout(dropout, name = "DropoutLayer_"+str(iLayer))(X)
 
         # generate output layer
-        X = keras.layers.Dense( 
+        X = keras.layers.Dense(
             units               = self.data.n_output_neurons,
             activation          = output_activation.lower(),
             kernel_regularizer  = keras.regularizers.l2(l2_regularization_beta),
@@ -385,6 +386,10 @@ class DNN():
 
         # produce json file with configs
         configs = self.architecture
+        ### self added loss function
+        if(isinstance(self.architecture["loss_function"], types.FunctionType)):
+            configs["loss_function"] = "asimovLoss"
+        ###
         configs["inputName"] = self.inputName
         configs["outputName"] = self.outputName+"/"+configs["output_activation"]
         configs = {key: configs[key] for key in configs if not "optimizer" in key}
@@ -400,7 +405,7 @@ class DNN():
         configs["shuffleSeed"] = self.data.shuffleSeed
         configs["trainSelection"] = self.evenSel
         configs["evalSelection"] = self.oddSel
-        
+
         # save information for binary DNN
         if self.data.binary_classification:
             configs["binaryConfig"] = {
@@ -418,7 +423,7 @@ class DNN():
         variables = variable_configs.loc[self.train_variables]
         variables.to_csv(plot_file, sep = ",")
         print("wrote config of input variables to {}".format(plot_file))
-        
+
 
     def eval_model(self):
         ''' evaluate trained model '''
@@ -471,12 +476,12 @@ class DNN():
                 sample.max=round(float(max_[i]),2)
                 sample.min=round(float(1./len(self.input_samples.samples)),2)
 
-                
-        
+
+
     def get_input_weights(self):
         ''' get the weights of the input layer and sort input variables by weight sum '''
 
-        # get weights 
+        # get weights
         first_layer = self.model.layers[1]
         weights = first_layer.get_weights()[0]
 
@@ -546,7 +551,7 @@ class DNN():
 
 
 
-    def plot_outputNodes(self, log = False, printROC = False, signal_class = None, 
+    def plot_outputNodes(self, log = False, printROC = False, signal_class = None,
                         privateWork = False,
                         nbins = 20, bin_range = [0.,1.]):
 
@@ -643,7 +648,7 @@ def loadDNN(inputDirectory, outputDirectory):
 
     # get net config json
     configFile = inputDirectory+"/checkpoints/net_config.json"
-    if not os.path.exists(configFile): 
+    if not os.path.exists(configFile):
         sys.exit("config needed to load trained DNN not found\n{}".format(configFile))
 
     with open(configFile) as f:
