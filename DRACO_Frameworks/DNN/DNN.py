@@ -2,7 +2,6 @@ import os
 import sys
 import numpy as np
 import json
-import types # added
 
 # local imports
 filedir  = os.path.dirname(os.path.realpath(__file__))
@@ -386,10 +385,6 @@ class DNN():
 
         # produce json file with configs
         configs = self.architecture
-        ### self added loss function
-        if(isinstance(self.architecture["loss_function"], types.FunctionType)):
-            configs["loss_function"] = "asimovLoss"
-        ###
         configs["inputName"] = self.inputName
         configs["outputName"] = self.outputName+"/"+configs["output_activation"]
         configs = {key: configs[key] for key in configs if not "optimizer" in key}
@@ -642,7 +637,7 @@ class DNN():
             plotdir             = self.save_path,
             logscale            = log)
 
-        binaryOutput.plot(ratio = False, printROC = printROC, privateWork = privateWork, name = name)
+        binaryOutput.plot(ratio = True, printROC = printROC, privateWork = privateWork, name = name)
 
 def loadDNN(inputDirectory, outputDirectory):
 

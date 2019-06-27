@@ -147,7 +147,7 @@ variables["ge6j_ge3t"] = [
     #"MVA_transverse_sphericity",
     #"Evt_M_JetsAverage",
     #"Evt_CSV_Min",
-    #"Evt_M_MinDeltaRTaggedJets",
+    "Evt_M_MinDeltaRTaggedJets",
     #"MVA_delta_phi_l_bhad",
     #"MVA_sphericity_jets",
     #"MVA_delta_eta_l_bhad",

@@ -1,5 +1,8 @@
 from keras import optimizers
 from asimov_loss import asimovLoss
+from keras import losses
+
+losses.custom_loss = asimovLoss
 
 config_dict = {}
 
@@ -111,8 +114,8 @@ config_dict["binary_config_v2"] = {
         "loss_function":            "binary_crossentropy",
         "Dropout":                  0.3,
         "L2_Norm":                  1e-5,
-        "batch_size":               4000,
-        "optimizer":                optimizers.Adadelta(),
+        "batch_size":               2000,
+        "optimizer":                optimizers.Adam(1e-4),
         "activation_function":      "selu",
         "output_activation":        "Sigmoid",
         "earlystopping_percentage": 0.05,
@@ -120,13 +123,13 @@ config_dict["binary_config_v2"] = {
         }
 config_dict["binary_config_asimov"] = {
         "layers":                   [200,100],
-        "loss_function":            asimovLoss,
+        "loss_function":            "custom_loss",
         "Dropout":                  0.3,
         "L2_Norm":                  1e-5,
-        "batch_size":               4000,
-        "optimizer":                optimizers.Adadelta(),
+        "batch_size":               2000,
+        "optimizer":                optimizers.Adam(1e-4),
         "activation_function":      "selu",
         "output_activation":        "Sigmoid",
-        "earlystopping_percentage": 0.05,
+        "earlystopping_percentage": 0.10,
         "earlystopping_epochs":     50,
         }

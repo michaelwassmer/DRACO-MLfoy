@@ -147,8 +147,8 @@ input_samples.addSample("tt2b"+naming, label = "tt2b", normalization_weight = no
 input_samples.addSample("ttb"+naming,  label = "ttb",  normalization_weight = nom_weight)
 input_samples.addSample("ttcc"+naming, label = "ttcc", normalization_weight = nom_weight)
 input_samples.addSample("ttlf"+naming, label = "ttlf", normalization_weight = nom_weight)
-input_samples.addSample("ttZ"+naming,  label = "ttZ",  normalization_weight = nom_weight)
-input_samples.addSample("ST"+naming,   label = "ST",   normalization_weight = nom_weight)
+#input_samples.addSample("ttZ"+naming,  label = "ttZ",  normalization_weight = nom_weight)
+#input_samples.addSample("ST"+naming,   label = "ST",   normalization_weight = nom_weight)
 #input_samples.addSample("tH"+naming,   label = "tH",   normalization_weight = nom_weight)
 
 if options.binary:
@@ -176,7 +176,7 @@ if options.net_config:
     config=config_dict[options.net_config]
 
 # build DNN model
-dnn.build_model(config)
+dnn.build_model(config=config)#, model=dnn.load_trained_model("../workdir/Show_cases/pre_train_ge6j_ge3t_even/"))
 
 # perform the training
 dnn.train_model()
