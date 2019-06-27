@@ -236,11 +236,13 @@ def drawClosureTestOnCanvas(sig_train, bkg_train, sig_test, bkg_test, plotOption
 
     return canvas
 
-def drawHistsOnCanvas(sigHists, bkgHists, plotOptions, canvasName,displayname=None,logoption=False):
+def drawHistsOnCanvas(sigHists, bkgHists, sigHistsForRatio, plotOptions, canvasName,displayname=None,logoption=False):   #changed
     if not displayname:
         displayname=canvasName
     if not isinstance(sigHists, list):
         sigHists = [sigHists]
+    if not isinstance(sigHistsForRatio, list):    #added
+        sigHistsForRatio = [sigHistsForRatio]
     if not isinstance(bkgHists, list):
         bkgHists = [bkgHists]
 
@@ -250,6 +252,8 @@ def drawHistsOnCanvas(sigHists, bkgHists, plotOptions, canvasName,displayname=No
     for h in bkgHists:
         moveOverUnderFlow(h)
     for h in sigHists:
+        moveOverUnderFlow(h)
+    for h in sigHistsForRatio:  # added
         moveOverUnderFlow(h)
 
     # stack Histograms
@@ -298,9 +302,9 @@ def drawHistsOnCanvas(sigHists, bkgHists, plotOptions, canvasName,displayname=No
 
     if plotOptions["ratio"]:
         canvas.cd(2)
-        line = sigHists[0].Clone()
-        line.Divide(sigHists[0])
-        line.GetYaxis().SetRangeUser(0.0,45.0)  # changed
+        line = sigHistsForRatio[0].Clone()     # changed
+        line.Divide(sigHistsForRatio[0])       # changed
+        line.GetYaxis().SetRangeUser(0.0,1.1)  # changed
         line.GetYaxis().SetTitle(plotOptions["ratioTitle"])
 
         line.GetXaxis().SetLabelSize(line.GetXaxis().GetLabelSize()*2.4)
@@ -319,7 +323,7 @@ def drawHistsOnCanvas(sigHists, bkgHists, plotOptions, canvasName,displayname=No
         line.SetLineColor(ROOT.kBlack)
         line.DrawCopy("histo")
         # ratio plots
-        for sigHist in sigHists:
+        for sigHist in sigHistsForRatio:   #changed
             ratioPlot = sigHist.Clone()
             ratioPlot.Divide(bkgHists[0])
             ratioPlot.SetTitle(displayname)

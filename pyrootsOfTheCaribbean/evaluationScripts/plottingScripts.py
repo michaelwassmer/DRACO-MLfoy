@@ -761,7 +761,9 @@ class plotBinaryOutput:
             filled      = True)
 
         scaleFactor = sum(bkg_weights)/(sum(sig_weights)+1e-9)
+        sig_hist_no_scale = sig_hist.Clone()   #added
         sig_hist.Scale(scaleFactor)
+
 
         # rescale histograms if privateWork enabled
         if privateWork:
@@ -770,12 +772,12 @@ class plotBinaryOutput:
 
         plotOptions = {
             "ratio":      ratio,
-            "ratioTitle": "#frac{scaled Signal}{Background}",
+            "ratioTitle": "#frac{Signal}{Background}", #changed
             "logscale":   self.logscale}
 
         # initialize canvas
         canvas = setup.drawHistsOnCanvas(
-            sig_hist, bkg_hist, plotOptions,
+            sig_hist, bkg_hist, sig_hist_no_scale, plotOptions,       #changed
             canvasName = name)
 
         # setup legend

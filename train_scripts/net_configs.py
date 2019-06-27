@@ -1,8 +1,5 @@
 from keras import optimizers
-from asimov_loss import asimovLoss
-from keras import losses
-
-losses.custom_loss = asimovLoss
+from asimov_loss import *
 
 config_dict = {}
 
@@ -123,7 +120,7 @@ config_dict["binary_config_v2"] = {
         }
 config_dict["binary_config_asimov"] = {
         "layers":                   [200,100],
-        "loss_function":            "custom_loss",
+        "loss_function":            "asimov_with_sys_inv",
         "Dropout":                  0.3,
         "L2_Norm":                  1e-5,
         "batch_size":               2000,

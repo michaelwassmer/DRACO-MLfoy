@@ -1,17 +1,14 @@
 from keras import backend as K
+from keras import losses
 
-def asimovLoss(y_true, y_pred):
-    #Continuous version:
-    #lumi             = 41.1  #luminosity in 1/fb at13TeV
-    #eff              = 0.015
-    systematic       = 0.1
-    #cross_sec_signal = 293.4 # in fb
-    #cross_sec_bkg    = 844000.
+expected_signal = 198.0   #lumi * cross_sec_signal * eff
+expected_bkg    = 19242.0 #lumi * cross_sec_bkg * eff
+scale_factor = 0.01
 
-    expected_signal = 198.0 #16.9 # 1232 #lumi * cross_sec_signal * eff
-    expected_bkg    = 19242.0 #382.9 # 582035 #lumi * cross_sec_bkg * eff
+systematic       = 0.3
 
-    scale_factor = 0.01
+def asimovLossWithSys(y_true, y_pred):
+
     signal_weight = scale_factor * expected_signal / K.sum(y_true)
     bkg_weight    = scale_factor * expected_bkg / K.sum(1 - y_true)
 
@@ -19,12 +16,71 @@ def asimovLoss(y_true, y_pred):
     b       = bkg_weight * K.sum(y_pred * (1 - y_true))
     sys_bkg = systematic * b
 
-    ###  approximations of statistical significance, s / sqrt(s + b)
-    #return (s + b) / (s*s + K.epsilon())
-    return - (s*s) / (s + b + K.epsilon())
     ### asimov with systematic bkg uncertainty
-    #return 1./ (K.square(2 * ((s+b) * K.log((s+b) * (b + sys_bkg*sys_bkg) / (b*b + (s+b) * sys_bkg*sys_bkg + K.epsilon()) + K.epsilon()) //
-    #       - b*b * K.log(1 + sys_bkg*sys_bkg * s / (b * (b + sys_bkg*sys_bkg) + K.epsilon())) / (sys_bkg*sys_bkg + K.epsilon()))))
+    return -(K.square(2*((s+b)*K.log((s+b)*(b+sys_bkg*sys_bkg)/(b*b+(s+b)*sys_bkg*sys_bkg+K.epsilon())+K.epsilon())  //
+           -b*b*K.log(1+sys_bkg*sys_bkg*s/(b*(b+sys_bkg*sys_bkg)+K.epsilon()))/(sys_bkg*sys_bkg+K.epsilon()))))
+
+def asimovLossWithSysInv(y_true, y_pred):
+
+    signal_weight = scale_factor * expected_signal / K.sum(y_true)
+    bkg_weight    = scale_factor * expected_bkg / K.sum(1 - y_true)
+
+    s       = signal_weight * K.sum(y_pred * y_true)
+    b       = bkg_weight * K.sum(y_pred * (1 - y_true))
+    sys_bkg = systematic * b
+
+    ### inverted asimov with systematic bkg uncertainty
+    return 1./(K.square(2*((s+b)*K.log((s+b)*(b+sys_bkg*sys_bkg)/(b*b+(s+b)*sys_bkg*sys_bkg+K.epsilon())+K.epsilon())  //
+           -b*b*K.log(1+sys_bkg*sys_bkg*s/(b*(b+sys_bkg*sys_bkg)+K.epsilon()))/(sys_bkg*sys_bkg+K.epsilon()))))
+
+def asimovLossWoutSys(y_true, y_pred):
+
+    signal_weight = scale_factor * expected_signal / K.sum(y_true)
+    bkg_weight    = scale_factor * expected_bkg / K.sum(1 - y_true)
+
+    s = signal_weight * K.sum(y_pred * y_true)
+    b = bkg_weight * K.sum(y_pred * (1 - y_true))
+
     ### asimov without systematic bkg uncertainty
-    #return 1. / K.square(2 * ((s+b) * K.log(1 + s/b) - s))
-    #return - K.square(2 * ((s+b) * K.log(1 + s/b) - s))
+    return -K.square(2*((s+b)*K.log(1+s/b)-s))
+
+def asimovLossWoutSysInv(y_true, y_pred):
+
+    signal_weight = scale_factor * expected_signal / K.sum(y_true)
+    bkg_weight    = scale_factor * expected_bkg / K.sum(1 - y_true)
+
+    s       = signal_weight * K.sum(y_pred * y_true)
+    b       = bkg_weight * K.sum(y_pred * (1 - y_true))
+
+    ### inverted asimov without systematic bkg uncertainty
+    return 1./K.square(2*((s+b)*K.log(1+s/b)-s))
+
+def significanceLoss(y_true, y_pred):
+
+    signal_weight = scale_factor * expected_signal / K.sum(y_true)
+    bkg_weight    = scale_factor * expected_bkg / K.sum(1 - y_true)
+
+    s       = signal_weight * K.sum(y_pred * y_true)
+    b       = bkg_weight * K.sum(y_pred * (1 - y_true))
+
+    ###  approximations of statistical significance, s / sqrt(s + b)
+    return -(s*s)/(s+b+K.epsilon())
+
+def significanceLossInv(y_true, y_pred):
+
+    signal_weight = scale_factor * expected_signal / K.sum(y_true)
+    bkg_weight    = scale_factor * expected_bkg / K.sum(1 - y_true)
+
+    s = signal_weight * K.sum(y_pred * y_true)
+    b = bkg_weight * K.sum(y_pred * (1 - y_true))
+
+    ### inverted approximations of statistical significance, s / sqrt(s + b)
+    return (s+b)/(s*s+K.epsilon())
+
+
+losses.asimov_with_sys     = asimovLossWithSys
+losses.asimov_with_sys_inv = asimovLossWithSysInv
+losses.asimov_wout_sys     = asimovLossWoutSys
+losses.asimov_wout_sys_inv = asimovLossWoutSysInv
+losses.sig_loss            = significanceLoss
+losses.sig_inv_loss        = significanceLossInv
