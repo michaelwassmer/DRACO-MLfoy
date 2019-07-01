@@ -77,6 +77,13 @@ def significanceLossInv(y_true, y_pred):
     ### inverted approximations of statistical significance, s / sqrt(s + b)
     return (s+b)/(s*s+K.epsilon())
 
+def testLoss(y_true, y_pred):
+    signal_weight = scale_factor * expected_signal / K.sum(y_true)
+    bkg_weight    = scale_factor * expected_bkg / K.sum(1 - y_true)
+
+    #return 1. /(signal_weight* K.sum(y_pred*y_true))
+    return bkg_weight*K.sum(y_pred*(1 - y_true))
+
 
 losses.asimov_with_sys     = asimovLossWithSys
 losses.asimov_with_sys_inv = asimovLossWithSysInv
@@ -84,3 +91,4 @@ losses.asimov_wout_sys     = asimovLossWoutSys
 losses.asimov_wout_sys_inv = asimovLossWoutSysInv
 losses.sig_loss            = significanceLoss
 losses.sig_inv_loss        = significanceLossInv
+losses.test                = testLoss

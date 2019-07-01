@@ -2,6 +2,7 @@ import ROOT
 ROOT.gROOT.SetBatch(True)
 import re
 import numpy as np
+from array import array # added
 
 # dictionary for colors
 def GetPlotColor( cls ):
@@ -276,7 +277,7 @@ def drawHistsOnCanvas(sigHists, bkgHists, sigHistsForRatio, plotOptions, canvasN
     else:
         firstHist = bkgHists[0]
     if plotOptions["logscale"] or logoption:
-        firstHist.GetYaxis().SetRangeUser(yMinMax/10000, yMax*10)
+        firstHist.GetYaxis().SetRangeUser(yMinMax/100000, yMax*10)
         canvas.SetLogy()
     else:
         firstHist.GetYaxis().SetRangeUser(0, yMax*1.5)
@@ -337,6 +338,71 @@ def drawHistsOnCanvas(sigHists, bkgHists, sigHistsForRatio, plotOptions, canvasN
         canvas.cd(1).SetLogy() # added
     return canvas
 
+
+def drawRatioPlotOnCanvas(sigHists, bkgHists, canvasName, out_path, displayname=None,logoption=False ):
+    if not displayname:
+        displayname=canvasName
+    if not isinstance(sigHists, list):
+        sigHists = [sigHists]
+    if not isinstance(bkgHists, list):
+        bkgHists = [bkgHists]
+
+    canvas = getCanvas(canvasName)
+
+    # move over/underflow bins into plotrange
+    for h in bkgHists:
+        moveOverUnderFlow(h)
+    for h in sigHists:
+        moveOverUnderFlow(h)
+
+    # stack Histograms
+    bkgHists = [bkgHists[len(bkgHists)-1-i] for i in range(len(bkgHists))]
+    for i in range(len(bkgHists)-1, 0, -1):
+        bkgHists[i-1].Add(bkgHists[i])
+
+    # calculate background events for different cuts on discriminator
+    ValueListBkg = array("d")
+    for h in bkgHists:
+        for i in range(h.GetNbinsX()):
+            bkg_events = h.Integral(i, h.GetNbinsX())
+            ValueListBkg.append(bkg_events)
+
+    # calculate signal events for different cuts on discriminator
+    ValueListSig = array("d")
+    for h in sigHists:
+        for i in range(h.GetNbinsX()):
+            sig_events = h.Integral(i, h.GetNbinsX())
+            ValueListSig.append(sig_events)
+
+    # calculate Graph
+    n = sigHists[0].GetNbinsX()
+    x = array("d")
+    y = array("d")
+    for j in range(n):
+        x.append(j / float(n))
+        if ValueListBkg[j] != 0:
+            y.append(ValueListSig[j] / ValueListBkg[j])
+        else:
+            y.append(0.)
+
+    # save the integrated events for different cuts on discriminator
+    int_file = open(out_path + "/integral_values.txt", "w")
+    for k in range(n):
+        int_file.write(str(k)+", "+str(ValueListSig[k])+", "+str(ValueListBkg[k])+"\n")
+    int_file.close()
+
+    # plot Graph
+    func = ROOT.TGraph(n, x, y)
+    func.SetLineColor( 38 )
+    func.SetLineWidth( 2 )
+    func.SetMarkerColor( 7 )
+    func.SetMarkerStyle( 20 )
+    func.SetTitle( "signal/background ratio" )
+    func.GetXaxis().SetTitle( "Cut on Discriminator" )
+    func.GetYaxis().SetTitle( "#frac{Signal}{Background}" )
+    func.GetYaxis().SetRangeUser(0.0, 0.55)
+    func.Draw("ALP")
+    saveCanvas(canvas, out_path + "/ratioPlot.pdf")
 
 
 # ===============================================

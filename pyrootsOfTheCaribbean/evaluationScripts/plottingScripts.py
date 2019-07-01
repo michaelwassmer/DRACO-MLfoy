@@ -807,3 +807,7 @@ class plotBinaryOutput:
 
         out_path = self.plotdir + "/binaryDiscriminator.pdf"
         setup.saveCanvas(canvas, out_path)
+
+        # draw ratio plot for different cuts on discriminator
+        out_path_ratio = self.plotdir
+        setup.drawRatioPlotOnCanvas(sig_hist_no_scale, bkg_hist, canvasName = "ratio s/b", out_path=out_path_ratio)
