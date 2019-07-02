@@ -348,6 +348,7 @@ def drawRatioPlotOnCanvas(sigHists, bkgHists, canvasName, out_path, displayname=
         bkgHists = [bkgHists]
 
     canvas = getCanvas(canvasName)
+    canvas.SetGrid()
 
     # move over/underflow bins into plotrange
     for h in bkgHists:
@@ -360,28 +361,38 @@ def drawRatioPlotOnCanvas(sigHists, bkgHists, canvasName, out_path, displayname=
     for i in range(len(bkgHists)-1, 0, -1):
         bkgHists[i-1].Add(bkgHists[i])
 
-    # calculate background events for different cuts on discriminator
+    # calculate background events for different cuts on discriminator and Errors
     ValueListBkg = array("d")
+    ValueListBkg_err = array("d")
     for h in bkgHists:
         for i in range(h.GetNbinsX()):
-            bkg_events = h.Integral(i, h.GetNbinsX())
+            bkg_error = ROOT.Double()
+            bkg_events = h.IntegralAndError(i, h.GetNbinsX(), bkg_error)
             ValueListBkg.append(bkg_events)
+            ValueListBkg_err.append(bkg_error)
 
-    # calculate signal events for different cuts on discriminator
+    # calculate signal events for different cuts on discriminator and Errors
     ValueListSig = array("d")
+    ValueListSig_err = array("d")
     for h in sigHists:
         for i in range(h.GetNbinsX()):
-            sig_events = h.Integral(i, h.GetNbinsX())
+            sig_error = ROOT.Double()
+            sig_events = h.IntegralAndError(i, h.GetNbinsX(), sig_error)
             ValueListSig.append(sig_events)
+            ValueListSig_err.append(sig_error)
 
-    # calculate Graph
+    # calculate Graph and Errors
     n = sigHists[0].GetNbinsX()
     x = array("d")
     y = array("d")
+    y_err = array("d")
+    x_err = array("d")
     for j in range(n):
         x.append(j / float(n))
+        x_err.append(0.)
         if ValueListBkg[j] != 0:
             y.append(ValueListSig[j] / ValueListBkg[j])
+            y_err.append(np.sqrt(ValueListSig_err[j]**2/ValueListBkg[j]**2 + ValueListBkg_err[j]**2*ValueListSig[j]**2/ValueListBkg[j]**4))
         else:
             y.append(0.)
 
@@ -392,16 +403,22 @@ def drawRatioPlotOnCanvas(sigHists, bkgHists, canvasName, out_path, displayname=
     int_file.close()
 
     # plot Graph
-    func = ROOT.TGraph(n, x, y)
-    func.SetLineColor( 38 )
-    func.SetLineWidth( 2 )
-    func.SetMarkerColor( 7 )
+    func = ROOT.TGraphErrors(n, x, y, x_err, y_err)
+    func.SetLineColor( ROOT.kAzure+10 )
+    func.SetLineWidth( 1 )
+    func.SetMarkerColor( ROOT.kAzure +10 )
     func.SetMarkerStyle( 20 )
     func.SetTitle( "signal/background ratio" )
     func.GetXaxis().SetTitle( "Cut on Discriminator" )
-    func.GetYaxis().SetTitle( "#frac{Signal}{Background}" )
-    func.GetYaxis().SetRangeUser(0.0, 0.55)
-    func.Draw("ALP")
+    func.GetYaxis().SetTitle( "Signal/Background" )
+    func.GetYaxis().SetTitleOffset(1.4)
+    func.GetXaxis().SetTitleOffset(1.2)
+    func.GetYaxis().SetTitleSize(0.055)
+    func.GetXaxis().SetTitleSize(0.055)
+    func.GetYaxis().SetLabelSize(0.055)
+    func.GetXaxis().SetLabelSize(0.055)
+    func.GetYaxis().SetRangeUser(0.0, 0.65)
+    func.Draw("AP")
     saveCanvas(canvas, out_path + "/ratioPlot.pdf")
 
 

@@ -176,7 +176,7 @@ if options.net_config:
     config=config_dict[options.net_config]
 
 # build DNN model
-dnn.build_model(config=config)#, model=dnn.load_trained_model("../workdir/pretest_ge6j_ge3t_even/"))
+dnn.build_model(config=config)#, model=dnn.load_trained_model("../workdir/Show_cases/asimov_pretrain_ge6j_ge3t_odd/"))
 
 # perform the training
 dnn.train_model()
