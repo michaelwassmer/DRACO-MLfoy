@@ -74,11 +74,11 @@ if not os.path.isabs(options.outputDir):
     plot_dir = basedir+"/workdir/"+options.outputDir
     if not os.path.exists(plot_dir):
         os.makedirs(plot_dir)
-else: 
+else:
     plot_dir=options.outputDir
     if not os.path.exists(options.outputDir):
         os.makedirs(plot_dir)
-   
+
 
 # plotting options
 plotOptions = {
@@ -132,7 +132,7 @@ plotter.addSample(
     sampleFile      = data_dir+"/ttZ"+naming,
     plotColor       = ROOT.kCyan,
     signalSample    = True)
-    
+
 # add background samples
 plotter.addSample(
     sampleName      = "ttbb",

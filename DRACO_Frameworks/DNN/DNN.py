@@ -2,6 +2,7 @@ import os
 import sys
 import numpy as np
 import json
+from functools import partial, update_wrapper
 
 # local imports
 filedir  = os.path.dirname(os.path.realpath(__file__))
@@ -11,6 +12,7 @@ sys.path.append(basedir)
 
 # import with ROOT
 from pyrootsOfTheCaribbean.evaluationScripts import plottingScripts
+
 
 # imports with keras
 import utils.generateJTcut as JTcut
@@ -69,7 +71,7 @@ class EarlyStopping(keras.callbacks.Callback):
 
         # check loss by percentage difference
         if self.value:
-            if (current_val-current_train)/(current_train) > self.value and epoch > self.min_epochs:
+            if (current_val-current_train)/(abs(current_train)) > self.value and epoch > self.min_epochs:
                 if self.verbose > 0:
                     print("\nEpoch {}: early stopping threshold reached".format(epoch))
                 self.n_failed += 1
@@ -91,12 +93,14 @@ class DNN():
             input_samples,
             event_category,
             train_variables,
+            weight_variables,
             train_epochs    = 500,
             test_percentage = 0.2,
             eval_metrics    = None,
             shuffle_seed    = None,
             balanceSamples  = False,
-            evenSel         = None):
+            evenSel         = None,
+            useSystematics  = None):
 
         # save some information
         # list of samples to load into dataframe
@@ -124,6 +128,8 @@ class DNN():
 
         # list of input variables
         self.train_variables = train_variables
+        self.weight_variables = weight_variables
+        self.useSystematics = useSystematics
 
         # percentage of events saved for testing
         self.test_percentage = test_percentage
@@ -163,6 +169,7 @@ class DNN():
             input_samples       = self.input_samples,
             event_category      = self.event_category,
             train_variables     = self.train_variables,
+            weight_variables    = self.weight_variables,
             test_percentage     = self.test_percentage,
             shuffleSeed         = shuffle_seed,
             balanceSamples      = balanceSamples,
@@ -261,6 +268,7 @@ class DNN():
 
         X = Inputs
         self.layer_list = [X]
+        if self.useSystematics: Weights = keras.layers.Input(shape=(3,), name="CSV_weights")
 
         # loop over dense layers
         for iLayer, nNeurons in enumerate(number_of_neurons_per_layer):
@@ -287,10 +295,63 @@ class DNN():
             )(X)
 
         # define model
-        model = models.Model(inputs = [Inputs], outputs = [X])
+        if self.useSystematics: model = models.Model(inputs = [Inputs, Weights], outputs = [X])
+        else: model = models.Model(inputs = [Inputs], outputs = [X])
+
+        # Loss for Systematics
+        def histLoss(y_true, y_pred):
+            return K.mean(K.binary_crossentropy(y_true, y_pred), axis=-1) + WeightLoss(y_true, y_pred, Weights)
+
+        def WeightLoss(y_true, y_pred, CSV_weights):
+            #value_range = [0.0, 1.0]
+            lam = 20.
+            #histBins = 5
+            nom_weights, weightsUp, weightsDown = tf.split(CSV_weights, num_or_size_splits=3, axis=1)
+            #weightsUp = tf.Print(weightsUp, [weightsUp, weightsDown])
+
+            def gauss_filter(x, mean, width):
+                return K.exp(-1.0 * (x - mean)**2 / 2.0 / width**2)
+
+            def count_bin(mean, width):
+                f = gauss_filter(y_pred, mean, width)
+                #f = tf.Print(f, [f, nom_weights])
+                f = f*nom_weights
+                #f = tf.Print(f, [f, weightsUp, weightsDown])
+                return K.sum(f), K.sum(f*weightsUp), K.sum(f*weightsDown)
+
+            bins = np.linspace(0, 1, 11)
+            width = bins[1] - bins[0]
+            mids = bins[:-1] + 0.5 * width
+            l = 0.0
+            for mean in mids:
+                nominal, shiftedUp, shiftedDown = count_bin(mean, width)
+                #nominal = tf.Print(nominal, [nominal, shiftedUp, shiftedDown])
+                l += K.square((nominal - shiftedUp) / K.clip(nominal, K.epsilon(), None)) + K.square((nominal - shiftedDown) / K.clip(nominal, K.epsilon(), None))
+            l /= K.cast(len(mids), K.floatx())
+
+            #hist = tf.to_float(tf.histogram_fixed_width(y_pred*nom_weights, value_range, nbins=histBins))
+            #histUp = tf.to_float(tf.histogram_fixed_width(y_pred*nom_weights*weightsUp, value_range, nbins=histBins))
+            #histDown = tf.to_float(tf.histogram_fixed_width(y_pred*nom_weights*weightsDown, value_range, nbins=histBins))
+            #hist=tf.Print(hist, [hist, histUp, histDown], "Up, Down: ", summarize=10)
+
+            #batchSize = tf.to_float(K.sum(y_true) + K.sum(1-y_true))
+            #L = K.square((hist-histUp)/hist) + K.square((hist-histDown)/hist)
+            #L = tf.Print(L, [L], summarize=10)
+            #L = lam * K.sum(L)/batchSize
+            #L = tf.Print(L, [L])
+            return lam*l
+
+        def wrapped_partial(func, *args, **kwargs):
+            partial_func = partial(func, *args, **kwargs)
+            update_wrapper(partial_func, func)
+            return partial_func
+
+        WeightLoss_ = wrapped_partial(WeightLoss, CSV_weights=Weights)
+
         model.summary()
 
-        return model
+        if self.useSystematics: return model, histLoss, WeightLoss_
+        else: return model
 
     def build_model(self, config = None, model = None):
         ''' build a DNN model
@@ -302,13 +363,19 @@ class DNN():
 
         if model == None:
             print("building model from config")
-            model = self.build_default_model()
+            if self.useSystematics: model, histLoss, WeightLoss_ = self.build_default_model()
+            else: model = self.build_default_model()
+
+
 
         # compile the model
+        used_loss = histLoss if self.useSystematics else self.architecture["loss_function"]
+        used_metrics = ["acc", WeightLoss_] if self.useSystematics else self.eval_metrics
+        print used_loss
         model.compile(
-            loss        = self.architecture["loss_function"],
+            loss        = used_loss,
             optimizer   = self.architecture["optimizer"],
-            metrics     = self.eval_metrics)
+            metrics     = used_metrics)
 
         # save the model
         self.model = model
@@ -333,15 +400,17 @@ class DNN():
                 verbose         = 1)]
 
         # train main net
+        x_data = [self.data.get_train_data(as_matrix = True), self.data.get_trainCSV_weights()] if self.useSystematics else self.data.get_train_data(as_matrix = True)
         self.trained_model = self.model.fit(
-            x = self.data.get_train_data(as_matrix = True),
+            x = x_data,
             y = self.data.get_train_labels(),
             batch_size          = self.architecture["batch_size"],
             epochs              = self.train_epochs,
             shuffle             = True,
             callbacks           = callbacks,
             validation_split    = 0.25,
-            sample_weight       = self.data.get_train_weights())
+            sample_weight       = self.data.get_train_weights()
+            )
 
     def save_model(self, argv, execute_dir):
         ''' save the trained model '''
@@ -424,18 +493,23 @@ class DNN():
         ''' evaluate trained model '''
 
         # evaluate test dataset
+        eval_test = [self.data.get_test_data(as_matrix = True), self.data.get_testCSV_weights()] if self.useSystematics else self.data.get_test_data(as_matrix = True)
         self.model_eval = self.model.evaluate(
-            self.data.get_test_data(as_matrix = True),
-            self.data.get_test_labels())
+            eval_test,
+            self.data.get_test_labels()
+            #batch_size = 4111
+            )
 
         # save history of eval metrics
         self.model_history = self.trained_model.history
 
         # save predicitons
+        test_pred = [self.data.get_test_data(as_matrix = True), self.data.get_testCSV_weights()] if self.useSystematics else self.data.get_test_data(as_matrix = True)
         self.model_prediction_vector = self.model.predict(
-            self.data.get_test_data(as_matrix = True) )
+             test_pred)
+        train_pred = [self.data.get_train_data(as_matrix = True), self.data.get_trainCSV_weights()] if self.useSystematics else self.data.get_train_data(as_matrix = True)
         self.model_train_prediction  = self.model.predict(
-            self.data.get_train_data(as_matrix = True) )
+             train_pred)
 
         #figure out ranges
         self.get_ranges()
@@ -516,11 +590,12 @@ class DNN():
             val_history = self.model_history["val_"+metric]
 
             n_epochs = len(train_history)
-            epochs = np.arange(1,n_epochs+1,1)
+            plot_epoch_cut = 0                                    # added
+            epochs = np.arange(1+plot_epoch_cut,n_epochs+1,1)     #changed
 
             # plot histories
-            plt.plot(epochs, train_history, "b-", label = "train", lw = 2)
-            plt.plot(epochs, val_history, "r-", label = "validation", lw = 2)
+            plt.plot(epochs, train_history[plot_epoch_cut:], "b-", label = "train", lw = 2)           #changed
+            plt.plot(epochs, val_history[plot_epoch_cut:], "r-", label = "validation", lw = 2)         #changed
             if privateWork:
                 plt.title("CMS private work", loc = "left", fontsize = 16)
 
@@ -637,7 +712,7 @@ class DNN():
             plotdir             = self.save_path,
             logscale            = log)
 
-        binaryOutput.plot(ratio = True, printROC = printROC, privateWork = privateWork, name = name)
+        binaryOutput.plot(ratio = False, printROC = printROC, privateWork = privateWork, name = name)
 
 def loadDNN(inputDirectory, outputDirectory):
 

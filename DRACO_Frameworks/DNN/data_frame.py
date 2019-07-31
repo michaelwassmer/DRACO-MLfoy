@@ -44,7 +44,7 @@ class Sample:
 
         self.data = df
         print("-"*50)
-        
+
     def getConfig(self):
         config = {}
         config["sampleLabel"] = self.label
@@ -58,7 +58,7 @@ class Sample:
     def addPrediction(self, model, train_variables):
         self.prediction_vector = model.predict(
             self.data[train_variables].values)
-        
+
         print("total number of events in sample: "+str(self.data.shape[0]))
         self.predicted_classes = np.argmax( self.prediction_vector, axis = 1 )
 
@@ -72,7 +72,7 @@ class InputSamples:
         self.activate_samples = activateSamples
         if self.activate_samples:
             self.activate_samples = self.activate_samples.split(",")
-            
+
     def addSample(self, sample_path, label, normalization_weight = 1., train_weight = 1.):
         if self.activate_samples and not label in self.activate_samples:
             print("skipping sample {}".format(label))
@@ -80,10 +80,10 @@ class InputSamples:
         if not os.path.isabs(sample_path):
             sample_path = self.input_path + "/" + sample_path
         self.samples.append( Sample(sample_path, label, normalization_weight, train_weight) )
-        
+
     def getClassConfig(self):
         configs = []
-        for sample in self.samples: 
+        for sample in self.samples:
             configs.append( sample.getConfig() )
         return configs
 
@@ -110,6 +110,7 @@ class DataFrame(object):
                 input_samples,
                 event_category,
                 train_variables,
+                weight_variables,
                 norm_variables = True,
                 test_percentage = 0.1,
                 lumi = 41.5,
@@ -133,7 +134,7 @@ class DataFrame(object):
         for sample in input_samples.samples:
             sample.load_dataframe(self.event_category, self.lumi, self.evenSel)
             train_samples.append(sample.data)
-        
+
         # concatenating all dataframes
         df = pd.concat( train_samples, sort = True )
         del train_samples
@@ -144,7 +145,7 @@ class DataFrame(object):
             index = 0
             self.class_translation = {}
             self.classes = []
-            
+
             for sample in input_samples.samples:
                 self.class_translation[sample.label] = index
                 self.classes.append(sample.label)
@@ -188,7 +189,7 @@ class DataFrame(object):
             bkg_df["binaryTarget"] = float(self.bkg_target)
 
             df = pd.concat([sig_df,bkg_df])
-            
+
             self.n_input_neurons = len(train_variables)
             self.n_output_neurons = 1
 
@@ -220,12 +221,13 @@ class DataFrame(object):
 
         # save variable lists
         self.train_variables = train_variables
+        self.weight_variables = weight_variables    # added
         self.output_classes = self.classes
         self.input_samples = input_samples
 
         # sample balancing if activated
         if self.balanceSamples:
-            self.balanceTrainSample()        
+            self.balanceTrainSample()
 
         # print some counts
         print("total events after cuts:  "+str(df.shape[0]))
@@ -253,7 +255,7 @@ class DataFrame(object):
             # get multiplication factor
             factor = int(maxEvents/sample.nevents)
 
-            print("multiplying {} Events by factor {}".format(sample.label, factor))       
+            print("multiplying {} Events by factor {}".format(sample.label, factor))
             print("number of events before: {}".format(events.shape[0]))
             print("number of events after:  {}".format(events.shape[0]*factor))
             events["train_weight"] = events["train_weight"]/factor
@@ -263,13 +265,17 @@ class DataFrame(object):
 
         self.df_train = pd.concat(new_train_dfs)
         print(self.df_train.head())
-        
+
         self.df_train = shuffle(self.df_train)
 
     # train data -----------------------------------
     def get_train_data(self, as_matrix = True):
         if as_matrix: return self.df_train[ self.train_variables ].values
         else:         return self.df_train[ self.train_variables ]
+
+    def get_trainCSV_weights(self):
+        if self.weight_variables == None: return None
+        else:                             return self.df_train[self.weight_variables].values
 
     def get_train_weights(self):
         return self.df_train["train_weight"].values
@@ -280,13 +286,17 @@ class DataFrame(object):
         else:              return self.df_train["index_label"].values
 
     def get_train_lumi_weights(self):
-        return self.df_train["lumi_weight"].values        
+        return self.df_train["lumi_weight"].values
 
     # test data ------------------------------------
     def get_test_data(self, as_matrix = True, normed = True):
         if not normed: return self.df_test_unnormed[ self.train_variables ]
         if as_matrix:  return self.df_test[ self.train_variables ].values
         else:          return self.df_test[ self.train_variables ]
+
+    def get_testCSV_weights(self):
+        if self.weight_variables == None: return None
+        else:                             return self.df_test[self.weight_variables].values
 
     def get_test_weights(self):
         return self.df_test["total_weight"].values

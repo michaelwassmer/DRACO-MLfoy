@@ -160,6 +160,7 @@ dnn = DNN.DNN(
     input_samples   = input_samples,
     event_category  = options.category,
     train_variables = variables,
+    weight_variables = ["Weight_CSV", "Weight_CSVHFup", "Weight_CSVHFdown"],
     # number of epochs
     train_epochs    = int(options.train_epochs),
     # metrics for evaluation (c.f. KERAS metrics)
@@ -168,7 +169,8 @@ dnn = DNN.DNN(
     test_percentage = 0.2,
     # balance samples per epoch such that there amount of samples per category is roughly equal
     balanceSamples  = options.balanceSamples,
-    evenSel         = options.even_sel)
+    evenSel         = options.even_sel,
+    useSystematics  = True)
 
 # import file with net configs if option is used
 if options.net_config:
@@ -198,7 +200,7 @@ if options.plot:
     if options.binary:
         # plot output node
         bin_range = [input_samples.bkg_target, 1.]
-        dnn.plot_binaryOutput(log = options.log, privateWork = options.privateWork, printROC = options.printROC, bin_range = bin_range, nbins = 40, name = run_name)
+        dnn.plot_binaryOutput(log = options.log, privateWork = options.privateWork, printROC = options.printROC, bin_range = bin_range, nbins = 30, name = run_name)
     else:
         # plot the confusion matrix
         dnn.plot_confusionMatrix(privateWork = options.privateWork, printROC = options.printROC)

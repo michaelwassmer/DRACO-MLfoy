@@ -56,28 +56,37 @@ variables["le5j_3t"] = tmp
 
 """
 variables["ge6j_ge3t"] = [
-    #"Evt_JetPtOverJetE",
-    #"Evt_Dr_MinDeltaRTaggedJets",
-    #"Evt_Dr_TaggedJetsAverage",
+    "Evt_JetPtOverJetE",
+    "Evt_Dr_MinDeltaRTaggedJets",
+    "Evt_Dr_TaggedJetsAverage",
     "Jet_CSV[0]",
+    #"Jet_CSV[3]",
     "BDT_common5_input_closest_tagged_dijet_mass",
-    #"Evt_M_MinDeltaRLeptonTaggedJet",
-    #"CSV[1]",
-    "BDT_common5_input_sphericity_jets",
+    "Evt_M_MinDeltaRLeptonTaggedJet",
+    "CSV[1]",
+    #"BDT_common5_input_sphericity_jets",
+    #"BDT_common5_input_sphericity_tags",
+    #"BDT_common5_input_transverse_sphericity_jets",
     #"BDT_common5_input_dev_from_avg_disc_btags",
     "N_BTagsT",
+    "N_BTagsM",
+    "N_Jets",
     #"Evt_blr_ETH",
     "Evt_Deta_TaggedJetsAverage",
-    #"Evt_M2_TaggedJetsAverage",
-    #"Evt_CSV_Average",
+    "Evt_M2_TaggedJetsAverage",
+    "Evt_CSV_Average",
+    "Evt_HT",
     "Evt_CSV_Average_Tagged",
     "Evt_CSV_Min_Tagged",
+    "Evt_CSV_Min",
     "BDT_common5_input_HT_tag",
-    #"Evt_M_JetsAverage",
+    "Evt_M_JetsAverage",
     #"memDBp",
     #"Evt_blr_ETH_transformed",
     "BDT_common5_input_max_dR_jj",
     "Jet_Pt[0]",
+    #"Jet_Pt[1]",
+    "Jet_Pt[2]",
     "Evt_Dr_MinDeltaRLeptonTaggedJet",
     ]
 """
@@ -128,7 +137,7 @@ variables["ge6j_ge3t"] = [
     #"MVA_best_higgs_mass",
     #"MVA_sphericity",
     #"Weight_CSV",
-    ##"MVA_invariant_mass_of_everything",
+    #"MVA_invariant_mass_of_everything",
     #"MVA_h3",
     #"MVA_h2",
     #"MVA_h1",
@@ -216,6 +225,7 @@ variables["ge6j_ge3t"] = [
     #"LooseLepton_Phi[0]",
     #"class_label",
     ]
+
 
 
 

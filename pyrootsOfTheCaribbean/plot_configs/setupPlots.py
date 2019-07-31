@@ -277,7 +277,7 @@ def drawHistsOnCanvas(sigHists, bkgHists, sigHistsForRatio, plotOptions, canvasN
     else:
         firstHist = bkgHists[0]
     if plotOptions["logscale"] or logoption:
-        firstHist.GetYaxis().SetRangeUser(yMinMax/100000, yMax*10)
+        firstHist.GetYaxis().SetRangeUser(yMinMax/100000,yMax*10)
         canvas.SetLogy()
     else:
         firstHist.GetYaxis().SetRangeUser(0, yMax*1.5)
@@ -397,9 +397,12 @@ def drawRatioPlotOnCanvas(sigHists, bkgHists, canvasName, out_path, displayname=
             y.append(0.)
 
     # save the integrated events for different cuts on discriminator
+    y_max = 0.
     int_file = open(out_path + "/integral_values.txt", "w")
     for k in range(n):
-        int_file.write(str(k)+", "+str(ValueListSig[k])+", "+str(ValueListBkg[k])+"\n")
+        int_file.write(str(x[k])+", "+str(ValueListSig[k])+", "+str(ValueListBkg[k])+"\n")
+        if y[k] > y_max:
+            y_max = y[k]
     int_file.close()
 
     # plot Graph
@@ -417,7 +420,7 @@ def drawRatioPlotOnCanvas(sigHists, bkgHists, canvasName, out_path, displayname=
     func.GetXaxis().SetTitleSize(0.055)
     func.GetYaxis().SetLabelSize(0.055)
     func.GetXaxis().SetLabelSize(0.055)
-    func.GetYaxis().SetRangeUser(0.0, 0.65)
+    func.GetYaxis().SetRangeUser(0.0, y_max + 0.1)
     func.Draw("AP")
     saveCanvas(canvas, out_path + "/ratioPlot.pdf")
 
