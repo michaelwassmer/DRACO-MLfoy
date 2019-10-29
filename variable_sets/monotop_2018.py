@@ -38,8 +38,6 @@ variables["leptonic"] = [
 "DeltaPhi_AK4Jet_MET[1]",
 "DeltaPhi_AK4Jet_MET[2]",
 "DeltaPhi_AK4Jet_MET[3]",
-"Weight_XS",
-"Weight_GEN_nom"
 ]
 all_variables = list(set( [v for key in variables for v in variables[key] ] ))
 

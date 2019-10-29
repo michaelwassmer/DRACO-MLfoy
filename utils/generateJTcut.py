@@ -2,6 +2,8 @@ def getJTstring(cat):
     # jtstring is '(ge)[NJets]j_(ge)[NTags]t'
     # output format is '(N_Jets (>=/==) [NJets] and N_BTagsM (>=/==) [NTags])'
 
+    if cat=="leptonic": return "1"
+
     string_parts = cat.split("_")
     
     cutstring = "("
@@ -38,6 +40,7 @@ def getJTlabel(cat):
     # special labels:
     if cat == "inclusive":  return "inclusive"
     if cat == "SL":         return "semileptonic t#bar{t}"
+    if cat == "leptonic":   return "leptonic"
 
     string_parts = cat.split("_")
 
