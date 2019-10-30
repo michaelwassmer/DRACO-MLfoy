@@ -2,6 +2,19 @@ from keras import optimizers
 
 config_dict = {}
 
+config_dict["monotop_2018"] = {
+        "layers":                   [100,50],
+        "loss_function":            "categorical_crossentropy",
+        "Dropout":                  0.1,
+        "L2_Norm":                  1e-5,
+        "batch_size":               5000,
+        "optimizer":                optimizers.SGD(lr=0.001),
+        "activation_function":      "elu",
+        "output_activation":        "Softmax",
+        "earlystopping_percentage": 0.05,
+        "earlystopping_epochs":     50,
+        }
+
 config_dict["example_config"] = {
         "layers":                   [200,200],
         "loss_function":            "categorical_crossentropy",

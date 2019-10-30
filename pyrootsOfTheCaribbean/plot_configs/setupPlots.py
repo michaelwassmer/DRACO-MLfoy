@@ -19,8 +19,11 @@ def GetPlotColor( cls ):
         "ttb_bb":       ROOT.kRed-1,
         "ST":           ROOT.kRed-8,
         "tH":           ROOT.kWhite,
-        "sig":   ROOT.kCyan,
-        "bkg":   ROOT.kOrange,
+        "sig":          ROOT.kCyan,
+        "bkg":          ROOT.kOrange,
+        "wjets":        ROOT.kYellow,
+        "ttbar":        ROOT.kMagenta,
+        "monotop":      ROOT.kCyan,
         }
 
     if "ttZ" in cls: cls = "ttZ"
